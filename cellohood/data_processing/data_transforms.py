@@ -237,7 +237,7 @@ def get_snake_square(x_):
 
     
 def transform_df_to_cello_df(
-    df_: pandas.Dataframe,
+    df_,
     image_id_column: str = 'RoiID',
     pos_col_names: Tuple[str] = ('Pos_X', 'Pos_Y'),
     distance_threshold: float = 25.,
@@ -246,13 +246,13 @@ def transform_df_to_cello_df(
     full_slides_dfs = []
     current_rois_ids = set(df_[image_id_column])
     for roi_id in current_rois_ids:
-            full_slides_dfs.append(df_[df_[image_id_column] == roi_id])
+            full_slides_dfs.append(df_[df_[image_id_column] == roi_id].copy())
     
     # Cluster cells on the slides
     slides_clusterings = [
         cluster_cell_df_positions_within_distance_threshold(
             cell_df=full_slide_df,
-            position_columns=[pos_col_names],
+            position_columns=pos_col_names,
             distance_threshold=distance_threshold,
             
         )
