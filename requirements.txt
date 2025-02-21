@@ -130,7 +130,6 @@ grandalf==0.8
 graphlib-backport==1.0.3
 grpcio==1.37.1
 h5py==3.1.0
-harmony-pytorch==0.1.8
 httplib2==0.22.0
 hydra-core==1.3.2
 identify==2.5.24
@@ -368,7 +367,6 @@ tokenize-rt==5.1.0
 tomli==2.0.1
 tomlkit==0.11.8
 toolz==0.12.0
-torch==2.0.0
 tornado==6.1
 tqdm==4.65.0
 traitlets==5.0.5
