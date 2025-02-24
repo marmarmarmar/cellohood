@@ -1,5 +1,6 @@
 from collections import defaultdict
 from collections import namedtuple
+from typing import List
 from typing import Tuple
 
 from sklearn import cluster as sk_cluster
@@ -12,6 +13,19 @@ ClusteredCellDfWithDistanceThreshold = namedtuple(
     [
         'cluster_assignment',
         'cluster_to_cells_assignment'
+    ]
+)
+
+
+BagCelloDf = namedtuple(
+    'CelloDf',
+    [
+        'cell_df',
+        'image_id_column',
+        'pos_col_names',
+        'distance_threshold',
+        'cellohood_neighborhood_cluster_colname',
+        'marker_col_names',
     ]
 )
 
@@ -236,8 +250,9 @@ def get_snake_square(x_):
     return int(x_ * (x_ + 1) * 0.5)
 
     
-def transform_df_to_cello_df(
+def transform_df_to_bag_cello_df(
     df_,
+    marker_col_names: List[str],
     image_id_column: str = 'RoiID',
     pos_col_names: Tuple[str] = ('Pos_X', 'Pos_Y'),
     distance_threshold: float = 25.,
@@ -289,4 +304,41 @@ def transform_df_to_cello_df(
         ]
     )
 
-    return cello_df
+    return BagCelloDf(
+        cell_df=cello_df,
+        image_id_column=image_id_column,
+        pos_col_names=pos_col_names,
+        distance_threshold=distance_threshold,
+        cellohood_neighborhood_cluster_colname=cellohood_neighborhood_cluster_colname,
+        marker_col_names=marker_col_names,
+    )
+
+
+def apply_arcsinh_to_df(
+    df_,
+    marker_col_names: List[str],
+    inplace: bool = False,
+):
+    if not inplace:
+        df_ = df_.copy()
+    df_[marker_col_names] = arcsinhtransform(df_[marker_col_names].values)
+    return df_
+    
+
+def apply_arcsinh_to_bag_cello_df(
+    cello_df: BagCelloDf,
+    inplace: bool = False,
+):
+    if not inplace:
+        new_cell_df = apply_arcsinh_to_df(df_=cello_df.cell_df, marker_col_names=cello_df.marker_col_names)
+        return BagCelloDf(
+            cell_df=new_cell_df,
+            image_id_column=cello_df.image_id_column,
+            distance_threshold=cello_df.distance_threshold,
+            marker_col_names=cello_df.marker_col_names,
+            pos_col_names=cello_df.pos_col_names,
+            cellohood_neighborhood_cluster_colname=cello_df.cellohood_neighborhood_cluster_colname,
+        )
+    else:
+        apply_arcsinh_to_df(df_=cello_df.cell_df, marker_col_names=cello_df.marker_col_names, inplace=True)
+        return cello_df
