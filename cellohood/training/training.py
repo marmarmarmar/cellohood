@@ -11,6 +11,7 @@ from keras import callbacks as k_callbacks
 from sklearn.decomposition import PCA 
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
+import pandas
 import sklearn.preprocessing as skp
 
 from cellohood.models import autoencoders as ca
@@ -26,14 +27,18 @@ def split_bag_cello_df_by(
     random_seed: int = 42,
 ):
     patients = list(set(cello_df.cell_df[by]))
-    train_patients, test_patients = train_test_split(
-        patients,
-        train_size=split_percentage,
-        random_state=random_seed,
-    )
+    if split_percentage < 1.0:
+        train_patients, test_patients = train_test_split(
+            patients,
+            train_size=split_percentage,
+            random_state=random_seed,
+        )
+    else:
+        train_patients, test_patients = patients, []
 
     train_cell_df = cello_df.cell_df[cello_df.cell_df[by].apply(lambda x: x in train_patients)]
-    test_cell_df = cello_df.cell_df[cello_df.cell_df[by].apply(lambda x: x in test_patients)]
+    if split_percentage < 1.0:
+        test_cell_df = cello_df.cell_df[cello_df.cell_df[by].apply(lambda x: x in test_patients)]
 
     train_bag_cello_df =  cdt.BagCelloDf(
         cell_df=train_cell_df,
@@ -44,15 +49,17 @@ def split_bag_cello_df_by(
         cellohood_neighborhood_cluster_colname=cello_df.cellohood_neighborhood_cluster_colname,
     )
 
-    test_bag_cello_df =  cdt.BagCelloDf(
-        cell_df=test_cell_df,
-        image_id_column=cello_df.image_id_column,
-        distance_threshold=cello_df.distance_threshold,
-        marker_col_names=cello_df.marker_col_names,
-        pos_col_names=cello_df.pos_col_names,
-        cellohood_neighborhood_cluster_colname=cello_df.cellohood_neighborhood_cluster_colname,
-    )
-    return train_bag_cello_df, test_bag_cello_df
+    if split_percentage < 1.0:
+        test_bag_cello_df =  cdt.BagCelloDf(
+            cell_df=test_cell_df,
+            image_id_column=cello_df.image_id_column,
+            distance_threshold=cello_df.distance_threshold,
+            marker_col_names=cello_df.marker_col_names,
+            pos_col_names=cello_df.pos_col_names,
+            cellohood_neighborhood_cluster_colname=cello_df.cellohood_neighborhood_cluster_colname,
+        )
+        return train_bag_cello_df, test_bag_cello_df
+    return train_bag_cello_df, None
 
     
 StandardizedBagCelloDfs = namedtuple(
@@ -100,7 +107,7 @@ def standardize_bag_cello_df(
     if fit_marker_scaler:
         marker_scaler.fit(scaler_train_array)
     train_df[marker_col_names] = marker_scaler.transform(scaler_train_array)
-    if test_df is not None:
+    if test_bag_cello_df is not None:
         test_df[marker_col_names] = marker_scaler.transform(test_df[marker_col_names].values) 
     if inplace:
         return StandardizedBagCelloDfs(
@@ -119,14 +126,15 @@ def standardize_bag_cello_df(
         pos_col_names=train_bag_cello_df.pos_col_names,
         cellohood_neighborhood_cluster_colname=train_bag_cello_df.cellohood_neighborhood_cluster_colname,
     )
-    test_bag_cello_df =  cdt.BagCelloDf(
-        cell_df=test_df,
-        image_id_column=test_bag_cello_df.image_id_column,
-        distance_threshold=test_bag_cello_df.distance_threshold,
-        marker_col_names=test_bag_cello_df.marker_col_names,
-        pos_col_names=test_bag_cello_df.pos_col_names,
-        cellohood_neighborhood_cluster_colname=test_bag_cello_df.cellohood_neighborhood_cluster_colname,
-    )
+    if test_bag_cello_df is not None:
+        test_bag_cello_df =  cdt.BagCelloDf(
+            cell_df=test_df,
+            image_id_column=test_bag_cello_df.image_id_column,
+            distance_threshold=test_bag_cello_df.distance_threshold,
+            marker_col_names=test_bag_cello_df.marker_col_names,
+            pos_col_names=test_bag_cello_df.pos_col_names,
+            cellohood_neighborhood_cluster_colname=test_bag_cello_df.cellohood_neighborhood_cluster_colname,
+        )
     return StandardizedBagCelloDfs(
         train_cello_df=train_bag_cello_df,
         test_cello_df=test_bag_cello_df,
@@ -154,32 +162,30 @@ def train(
         standardized_cello_dfs : StandardizedBagCelloDfs,
         batch_size: int = 512,
         epoch_nb: int = 1000,
-        image_col_name: str = 'image',
         optimizer_lr: float = 0.0001,
         optimizer_clipnorm: float = 1.0,
         use_cuda: bool = True,
         layer_size: int = 128,
         intermediate_layer_size: int = 256,
         latent_size: int = 64,
-        cellohood_cluster_colname: str = 'cellohood_neighborhood_cluster',
         tensorboard_path: Optional[str] = None,
 ):
 
     train_array, train_graph_array, max_neighborhood_size = imu.get_marker_matrix_and_graph_array_from_df(
-        df_=standardized_cello_dfs.train_df,
-        cellohood_cluster_colname=cellohood_cluster_colname,
-        image_col_name=image_col_name,
+        df_=standardized_cello_dfs.train_cello_df.cell_df,
+        cellohood_cluster_colname=standardized_cello_dfs.train_cello_df.cellohood_neighborhood_cluster_colname,
+        image_col_name=standardized_cello_dfs.train_cello_df.image_id_column,
         scaler=skp.FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x),
         data_columns_col=standardized_cello_dfs.marker_col_names,
         max_neighborhood_size=None,
     )
 
     test_array, test_graph_array = None, None
-    if standardized_cello_dfs.test_df is not None:
+    if standardized_cello_dfs.test_cello_df is not None:
         test_array, test_graph_array, _ = imu.get_marker_matrix_and_graph_array_from_df(
-            df_=standardized_cello_dfs.test_df,
-            cellohood_cluster_colname=cellohood_cluster_colname,
-            image_col_name=image_col_name,
+            df_=standardized_cello_dfs.test_cello_df.cell_df,
+            cellohood_cluster_colname=standardized_cello_dfs.train_cello_df.cellohood_neighborhood_cluster_colname,
+            image_col_name=standardized_cello_dfs.train_cello_df.image_id_column,
             scaler=skp.FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x),
             data_columns_col=standardized_cello_dfs.marker_col_names,
             max_neighborhood_size=max_neighborhood_size,
@@ -220,7 +226,7 @@ def train(
         history=history,
         marker_scaler=standardized_cello_dfs.marker_scaler,
         marker_col_names=standardized_cello_dfs.marker_col_names,
-        output_size=standardized_cello_dfs.output_size,
+        output_size=latent_size,
         max_neighborhood_size=max_neighborhood_size,
     )
 
@@ -230,31 +236,61 @@ CelloPrediction = namedtuple(
     [
         'cell_predictions',
         'bag_predictions',
+        'cello_columns',
+        'cellohood_neighborhood_cluster_colname',
+        'image_id_column',
+        'pos_col_names',
     ]
 )
 
     
 def run_prediction_on_cello_df(
     cellohood_training_result: CellohoodModel,
-    cello_df,
-    image_col_name,
-    cellohood_cluster_colname: str = 'cellohood_neighborhood_cluster',
+    bag_cello_df,
+    marker_scaler=None,
+    cello_columns=None,
 ):
+    if marker_scaler is None:
+        marker_scaler = cellohood_training_result.marker_scaler
+    if marker_scaler == 'identity':
+        marker_scaler = skp.FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
+
+    if cello_columns is None:
+        cello_columns = [f'{i}c' for i in range(cellohood_training_result.output_size)]
+        
     array, graph_array, _ = imu.get_marker_matrix_and_graph_array_from_df(
-        df_=cello_df,
-        cellohood_cluster_colname=cellohood_cluster_colname,
-        image_col_name=image_col_name,
-        scaler=cellohood_training_result.marker_scaler,
+        df_=bag_cello_df.cell_df,
+        cellohood_cluster_colname=bag_cello_df.cellohood_neighborhood_cluster_colname,
+        image_col_name=bag_cello_df.image_id_column,
+        scaler=marker_scaler,
         data_columns_col=cellohood_training_result.marker_col_names,
         max_neighborhood_size=cellohood_training_result.max_neighborhood_size,
     )
 
     full_cell_results = cellohood_training_result.model.encoder.predict([array, array, graph_array])
-    cell_level_results = imu.get_cell_preds(full_cell_results, graph_array)
-    bag_level_results = imu.aggregate_preds_with_size_information(full_cell_results, graph_array)
+    cell_level_results = pandas.DataFrame(
+        imu.get_cell_preds(full_cell_results, graph_array),
+        columns=cello_columns,
+    )
+    cell_level_results[bag_cello_df.image_id_column] = bag_cello_df.cell_df[bag_cello_df.image_id_column]
+    cell_level_results[bag_cello_df.pos_col_names] = bag_cello_df.cell_df[bag_cello_df.pos_col_names]
+    bag_level_results = pandas.DataFrame(
+        imu.aggregate_preds_with_size_information(full_cell_results, graph_array)
+    )
+    cell_level_results[bag_cello_df.cellohood_neighborhood_cluster_colname] = bag_cello_df.cell_df[
+        bag_cello_df.cellohood_neighborhood_cluster_colname
+    ]
+    bag_level_results[bag_cello_df.image_id_column] = bag_cello_df.cell_df.groupby(
+        bag_cello_df.cellohood_neighborhood_cluster_colname)[bag_cello_df.image_id_column].first()
+    bag_level_results[bag_cello_df.pos_col_names] = bag_cello_df.cell_df.groupby(
+        bag_cello_df.cellohood_neighborhood_cluster_colname)[bag_cello_df.pos_col_names].mean()
     return CelloPrediction(
         cell_predictions=cell_level_results,
         bag_predictions=bag_level_results,
+        cello_columns=cello_columns,
+        cellohood_neighborhood_cluster_colname=bag_cello_df.cellohood_neighborhood_cluster_colname,
+        image_id_column=bag_cello_df.image_id_column,
+        pos_col_names=bag_cello_df.pos_col_names,
     ) 
 
 

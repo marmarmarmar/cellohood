@@ -1008,6 +1008,8 @@ class BaseWinterCellEnvironmentAEV2(WinterCellEnvironmentAEV2):
         self.output_size = output_size
         self.max_neighborhood_size = max_neighborhood_size
         self.latent_size = latent_size
+        self.layer_size = layer_size
+        self.intermediate_layer_size = intermediate_layer_size
 
 
 class BaseWinterCellEnvironmentGraphSetAE(WinterCellEnvironmentGraphSetAE):

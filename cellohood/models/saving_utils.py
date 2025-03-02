@@ -116,6 +116,8 @@ def save_BaseWinterCellEnvironmentAEV2(
         'output_size': model.output_size,
         'max_neighborhood_size': model.max_neighborhood_size,
         'latent_size': model.latent_size,
+        'layer_size': model.layer_size,
+        'intermediate_layer_size': model.intermediate_layer_size,
     }
     with open(model_json_full_path, 'w', encoding='utf-8') as f:
         json.dump(model_json, f, ensure_ascii=False, indent=4)
@@ -130,9 +132,13 @@ def load_BaseWinterCellEnvironmentAEV2(
     model_json_full_path = os.path.join(path, model_json_filename)
     with open(model_json_full_path, 'r', encoding='utf-8') as f:
         model_json = json.load(f)
+    print(model_json)
     model = BaseWinterCellEnvironmentAEV2(
         output_size=model_json['output_size'],
-        max_neighborhood_size=model_json['max_neighborhood_size']
+        max_neighborhood_size=model_json['max_neighborhood_size'],
+        latent_size=model_json['latent_size'],
+        layer_size=model_json['layer_size'],
+        intermediate_layer_size=model_json['intermediate_layer_size'],
     ) 
     dummy_input = np.zeros((1, model_json['max_neighborhood_size'], model_json['output_size']))
     dummy_graph = np.zeros((1, model_json['max_neighborhood_size'], model_json['max_neighborhood_size']))
