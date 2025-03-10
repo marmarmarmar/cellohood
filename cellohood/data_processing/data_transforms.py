@@ -301,7 +301,8 @@ def transform_df_to_bag_cello_df(
             neighobrhood_df
             for slide_neighborhoods in slides_neighborhoods_dfs
             for neighobrhood_df in slide_neighborhoods
-        ]
+        ],
+        ignore_index=True,
     )
 
     return BagCelloDf(

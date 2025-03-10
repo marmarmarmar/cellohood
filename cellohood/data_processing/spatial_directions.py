@@ -177,7 +177,7 @@ def smooth_cellohood_prediction(
     )
     bag_cache_path = os.path.join(cache_path, 'BAG')
     smoothed_bag_predictions = smooth_df_multiprocessing(
-        df=cello_prediction.cell_predictions,
+        df=cello_prediction.bag_predictions,
         group=cello_prediction.image_id_column,
         saving_path=bag_cache_path,
         radius=distance_threshold,

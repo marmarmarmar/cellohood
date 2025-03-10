@@ -275,7 +275,8 @@ def run_prediction_on_cello_df(
     cell_level_results[bag_cello_df.image_id_column] = bag_cello_df.cell_df[bag_cello_df.image_id_column]
     cell_level_results[bag_cello_df.pos_col_names] = bag_cello_df.cell_df[bag_cello_df.pos_col_names]
     bag_level_results = pandas.DataFrame(
-        imu.aggregate_preds_with_size_information(full_cell_results, graph_array)
+        imu.aggregate_preds_with_size_information(full_cell_results, graph_array),
+        columns=cello_columns,
     )
     cell_level_results[bag_cello_df.cellohood_neighborhood_cluster_colname] = bag_cello_df.cell_df[
         bag_cello_df.cellohood_neighborhood_cluster_colname
