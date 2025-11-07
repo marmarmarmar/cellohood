@@ -104,6 +104,7 @@ def standardize_bag_cello_df(
     if pca_dimensions > 0 and fit_marker_scaler:
         pca_ = PCA(pca_dimensions)
         marker_scaler = Pipeline([('scaler', marker_scaler), ('pca', pca_)])
+        marker_col_names = [f'PCA: {i}' for i in range(pca_dimensions)]
     if fit_marker_scaler:
         marker_scaler.fit(scaler_train_array)
     train_df[marker_col_names] = marker_scaler.transform(scaler_train_array)
@@ -122,7 +123,7 @@ def standardize_bag_cello_df(
         cell_df=train_df,
         image_id_column=train_bag_cello_df.image_id_column,
         distance_threshold=train_bag_cello_df.distance_threshold,
-        marker_col_names=train_bag_cello_df.marker_col_names,
+        marker_col_names=marker_col_names,
         pos_col_names=train_bag_cello_df.pos_col_names,
         cellohood_neighborhood_cluster_colname=train_bag_cello_df.cellohood_neighborhood_cluster_colname,
     )
@@ -131,7 +132,7 @@ def standardize_bag_cello_df(
             cell_df=test_df,
             image_id_column=test_bag_cello_df.image_id_column,
             distance_threshold=test_bag_cello_df.distance_threshold,
-            marker_col_names=test_bag_cello_df.marker_col_names,
+            marker_col_names=marker_col_names,
             pos_col_names=test_bag_cello_df.pos_col_names,
             cellohood_neighborhood_cluster_colname=test_bag_cello_df.cellohood_neighborhood_cluster_colname,
         )
