@@ -223,10 +223,9 @@ def get_latent_directions(
     for explained_variance_level in explained_variance_levels:
         if isinstance(explained_variance_level, float):
             explained_cum_variance = smd_pca.explained_variance_ratio_.cumsum() 
-            explained_variance_level_to_n_components[float(explained_variance_level)] = max(numpy.argmin(numpy.abs(explained_cum_variance - explained_variance_level)), 1)
+            explained_variance_level_to_n_components[float(explained_variance_level)] = min(numpy.argmin(numpy.abs(explained_cum_variance - explained_variance_level)) + 1, len(columns))
         if isinstance(explained_variance_level, int):
             explained_variance_level_to_n_components[explained_variance_level] = explained_variance_level
-    print(explained_variance_level_to_n_components)
 
     plt.plot(smd_pca.explained_variance_ratio_)
     plt.plot(smd_pca.explained_variance_ratio_.cumsum())
