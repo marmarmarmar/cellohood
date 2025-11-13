@@ -2,10 +2,16 @@ from collections import defaultdict
 from collections import namedtuple
 from typing import List
 from typing import Tuple
+import json
+import os
 
 from sklearn import cluster as sk_cluster
 import numpy as np
 import pandas
+
+
+BAG_CELLO_DF_JSON_FILENAME = 'bag.json'
+BAG_CELLO_DF_DF_NAME = 'bag_df.csv'
 
 
 ClusteredCellDfWithDistanceThreshold = namedtuple(
@@ -343,3 +349,45 @@ def apply_arcsinh_to_bag_cello_df(
     else:
         apply_arcsinh_to_df(df_=cello_df.cell_df, marker_col_names=cello_df.marker_col_names, inplace=True)
         return cello_df
+
+
+def save_bag_cello_df(
+        bag_cello_df: BagCelloDf,
+        path: str,
+        exist_ok: bool = False,
+    ):
+    if os.path.exists(path) and not exist_ok:
+        raise ValueError(f'{path} exists. Please either remove the path or set exist_ok=True')
+
+    os.makedirs(path, exist_ok=exist_ok)
+    json_path = os.path.join(path, BAG_CELLO_DF_JSON_FILENAME)
+    df_path = os.path.join(path, BAG_CELLO_DF_DF_NAME)
+
+    param_json = {
+        'image_id_column': bag_cello_df.image_id_column,
+        'pos_col_names': bag_cello_df.pos_col_names,
+        'distance_threshold': bag_cello_df.distance_threshold,
+        'cellohood_neighborhood_cluster_colname': bag_cello_df.cellohood_neighborhood_cluster_colname,
+        'marker_col_names': bag_cello_df.marker_col_names,
+    }
+    with open(json_path, 'w') as f:
+        json.dump(param_json, f)
+    bag_cello_df.cell_df.to_csv(df_path)
+
+
+def load_bag_cello_df(path: str):
+    json_path = os.path.join(path, BAG_CELLO_DF_JSON_FILENAME)
+    df_path = os.path.join(path, BAG_CELLO_DF_DF_NAME)
+    
+    with open(json_path, 'r') as f:
+        param_json = json.load(f)
+    data_df = pandas.read_csv(df_path)
+    
+    return BagCelloDf(
+        cell_df=data_df,
+        image_id_column=param_json['image_id_column'],
+        pos_col_names=param_json['pos_col_names'],
+        distance_threshold=param_json['distance_threshold'],
+        cellohood_neighborhood_cluster_colname=param_json['cellohood_neighborhood_cluster_colname'],
+        marker_col_names=param_json['marker_col_names'],
+    )
