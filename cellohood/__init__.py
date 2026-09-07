@@ -3,6 +3,7 @@ from cellohood.data_processing.data_transforms import apply_arcsinh_to_bag_cello
 from cellohood.data_processing.data_transforms import load_bag_cello_df 
 from cellohood.data_processing.data_transforms import transform_df_to_bag_cello_df 
 from cellohood.data_processing.data_transforms import save_bag_cello_df 
+from cellohood.data_processing.bag_threshold_selection import select_bag_distance_threshold
 from cellohood.data_processing.spatial_directions import smooth_cellohood_prediction
 from cellohood.data_processing.spatial_directions import get_latent_directions 
 from cellohood.data_processing.spatial_directions import get_latent_directions_predictions
@@ -28,6 +29,7 @@ __all__ = [
     'run_prediction_on_cello_df',
     'save_bag_cello_df',
     'save_cello_train_result',
+    'select_bag_distance_threshold',
     'smooth_cellohood_prediction',
     'summarize_latent_direction_result',
     'split_bag_cello_df_by',
