@@ -1,0 +1,35 @@
+{
+  "title": "Cellohood: multi-granular discovery of cellular neighborhoods with a permutation-invariant set transformer auto-encoder",
+  "description": "Cellohood is a Python package implementing a permutation-invariant set transformer auto-encoder for multi-granular discovery of cellular neighborhoods from spatial transcriptomics and spatial proteomics data.",
+  "creators": [
+    {"name": "Możejko, Marcin", "affiliation": "Faculty of Mathematics, Informatics and Mechanics, University of Warsaw"},
+    {"name": "Schulz, Daniel", "affiliation": "Department of Quantitative Biomedicine, University of Zurich; Institute for Molecular Health Sciences, ETH Zurich"},
+    {"name": "Gogolewski, Krzysztof", "affiliation": "Faculty of Mathematics, Informatics and Mechanics, University of Warsaw"},
+    {"name": "Eling, Nils", "affiliation": "Department of Quantitative Biomedicine, University of Zurich; Institute for Molecular Health Sciences, ETH Zurich"},
+    {"name": "Krawczyk, Joanna", "affiliation": "Faculty of Mathematics, Informatics and Mechanics, University of Warsaw"},
+    {"name": "Bogatyrova, Olga", "affiliation": "Merck KGaA, Darmstadt"},
+    {"name": "Golab, Jakub", "affiliation": "Department of Immunology, Medical University of Warsaw"},
+    {"name": "Nowis, Dominika", "affiliation": "Laboratory of Experimental Medicine, Medical University of Warsaw"},
+    {"name": "Liechti, Robin", "affiliation": "Vital-IT, SIB Swiss Institute of Bioinformatics, Lausanne"},
+    {"name": "Morfouace, Marie", "affiliation": "Institut Gustave Roussy, Paris; EORTC HQ, Brussels"},
+    {"name": "Hong, Henoch", "affiliation": "Merck KGaA, Darmstadt"},
+    {"name": "Bodenmiller, Bernd", "affiliation": "Department of Quantitative Biomedicine, University of Zurich; Institute for Molecular Health Sciences, ETH Zurich"},
+    {"name": "Staub, Eike", "affiliation": "Merck KGaA, Darmstadt"},
+    {"name": "Szczurek, Ewa", "affiliation": "Faculty of Mathematics, Informatics and Mechanics, University of Warsaw; Institute of AI for Health, Helmholtz Zentrum München"}
+  ],
+  "license": "MIT",
+  "upload_type": "software",
+  "related_identifiers": [
+    {"identifier": "10.1101/2025.11.10.687184", "relation": "isSupplementTo", "resource_type": "publication-preprint"}
+  ],
+  "keywords": [
+    "spatial transcriptomics",
+    "spatial proteomics",
+    "cellular neighborhoods",
+    "transformer",
+    "autoencoder",
+    "permutation invariance",
+    "single-cell analysis",
+    "deep learning"
+  ]
+}
